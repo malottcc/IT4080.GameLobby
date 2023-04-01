@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using static It4080.Chat;
 
 namespace It4080 {
+
     public class PlayerCard : MonoBehaviour {
         TMPro.TMP_Text lblPlayerName;
         TMPro.TMP_Text lblScore;
