@@ -83,8 +83,14 @@ public class Main : NetworkBehaviour
 
 
         NetworkManager.Singleton.StartServer();
+        ServerOnServerStarted();
         //netSettings.hide();
         Debug.Log("started server");
+    }
+
+    private void ServerOnServerStarted()
+    {
+        NetworkManager.SceneManager.LoadScene("Lobby", UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 
 
