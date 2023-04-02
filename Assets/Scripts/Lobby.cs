@@ -18,7 +18,10 @@ namespace It4080
 
         }
 
-        //private PlayerCard AddPlayerCard(ulong clientId)
+        private PlayerCard AddPlayerCard(ulong clientId)
+        {
+            It4080.PlayerCard newCard = ConnectedPlayers.AddPlayer()
+        }
         
 
     }
