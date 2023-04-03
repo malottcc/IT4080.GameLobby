@@ -18,13 +18,12 @@ namespace It4080
 
 
         public Button btnStart;
-        public TMPro.TMP_Text txtKicked;
         private bool isCleared = false;
-        public Button Kick;
 
         string you = "";
         string who = "";
         string readyStatus = "Not Ready";
+        int playersReadyUp;
 
         //---------------------------------
         // Start
@@ -32,10 +31,9 @@ namespace It4080
         void Start()
         {
             spawnClear();
-            btnStart = GameObject.Find("BtnStartGame").GetComponent<Button>();
+
             btnStart.onClick.AddListener(BtnStartGameOnClick);
-            btnStart.gameObject.SetActive(false);
-            txtKicked.gameObject.SetActive(false);
+            btnStart.enabled = false;
         }
 
         private void BtnStartGameOnClick()
@@ -137,13 +135,13 @@ namespace It4080
 
             foreach (It4080.PlayerData players in playersData)
             {
-                var card = AddPlayerCard(players.clientId);
-                card.SetReady(players.isReady);
+                var currentCard = AddPlayerCard(players.clientId);
+                currentCard.SetReady(players.isReady);
                 if (players.isReady)
                 {
                     readyStatus = "Ready";
                 }
-                card.SetStatus(readyStatus);
+                currentCard.SetStatus(readyStatus);
             }
 
         }
@@ -166,7 +164,7 @@ namespace It4080
 
         private void ClientOnDisconnect(ulong clientId)
         {
-            txtKicked.gameObject.SetActive(true);
+            //txtKicked.gameObject.SetActive(true);
             connectedPlayers.gameObject.SetActive(false);
         }
 
@@ -176,7 +174,26 @@ namespace It4080
 
             if (IsHost)
             {
-                btnStart.gameObject.SetActive(false);
+                IfAllPlayersReady();
+            }
+        }
+
+        private void IfAllPlayersReady()
+        {
+            ConnectedPlayersDataList(NetworkHandler.Singleton.allPlayers);
+            playersReadyUp = 0;
+
+            foreach (It4080.PlayerData readyPlayers in NetworkHandler.Singleton.allPlayers)
+            {
+                if (readyPlayers.isReady)
+                {
+                    playersReadyUp += 1;
+                }
+            }
+
+            if (playersReadyUp == NetworkHandler.Singleton.allPlayers.Count)
+            {
+                btnStart.enabled = true;
             }
         }
 
