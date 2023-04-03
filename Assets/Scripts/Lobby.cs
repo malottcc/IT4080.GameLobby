@@ -57,7 +57,9 @@ namespace It4080
 
             if (IsClient)
             {
-                NetworkHandler.Singleton.allPlayers.OnListChanged += ClientOnAllPlayersChanged;
+
+                NetworkHandler.Singleton.allPlayers.OnListChanged += AllPlayersChanged;
+
                 ConnectedPlayersDataList(NetworkHandler.Singleton.allPlayers);
 
                 if (!IsHost)
@@ -125,7 +127,7 @@ namespace It4080
                 who = "(Player)";
             }
 
-            newCard.SetPlayerName($"{who} {clientId}{you}");
+            newCard.SetPlayerName($"{who} {clientId} - {you}");
             return newCard;
         }
 
@@ -168,7 +170,7 @@ namespace It4080
             connectedPlayers.gameObject.SetActive(false);
         }
 
-        private void ClientOnAllPlayersChanged(NetworkListEvent<It4080.PlayerData> changeEvent)
+        private void AllPlayersChanged(NetworkListEvent<It4080.PlayerData> changeEvent)
         {
             ConnectedPlayersDataList(NetworkHandler.Singleton.allPlayers);
 
