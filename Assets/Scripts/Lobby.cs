@@ -18,17 +18,24 @@ namespace It4080
 
 
         public Button btnStart;
-        public Button btnKick;
+        public TMPro.TMP_Text txtKicked;
         private bool isCleared = false;
+        public Button Kick;
+
+        string you = "";
+        string who = "";
+        string readyStatus = "Not Ready";
+
+        //---------------------------------
+        // Start
 
         void Start()
         {
-            startedClear();
-            //btnKick.gameObject.SetActive(false);
-
-            btnKick = GameObject.Find("BtnKick").GetComponent<Button>();
+            spawnClear();
             btnStart = GameObject.Find("BtnStartGame").GetComponent<Button>();
             btnStart.onClick.AddListener(BtnStartGameOnClick);
+            btnStart.gameObject.SetActive(false);
+            txtKicked.gameObject.SetActive(false);
         }
 
         private void BtnStartGameOnClick()
@@ -42,7 +49,35 @@ namespace It4080
             NetworkManager.SceneManager.LoadScene("Game", UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
 
-        private void startedClear()
+        
+        //----------------------------------------
+        // On Network Spawn
+
+        public override void OnNetworkSpawn()
+        {
+            spawnClear();
+
+            if (IsClient)
+            {
+                NetworkHandler.Singleton.allPlayers.OnListChanged += ClientOnAllPlayersChanged;
+                ConnectedPlayersDataList(NetworkHandler.Singleton.allPlayers);
+
+                if (!IsHost)
+                {
+                    NetworkManager.OnClientDisconnectCallback += ClientOnDisconnect;
+                }
+            }
+
+            if (IsServer)
+            {
+                NetworkHandler.Singleton.allPlayers.OnListChanged += LogNetworkListEvent;
+            }
+
+            btnStart.gameObject.SetActive(IsHost);
+            
+        }
+
+        private void spawnClear()
         {
             if (!isCleared)
             {
@@ -55,23 +90,64 @@ namespace It4080
             }
         }
 
-        public override void OnNetworkSpawn()
+        //------------------------------
+        // Player Card
+
+
+        private PlayerCard AddPlayerCard(ulong clientId)
         {
-            /*
+            It4080.PlayerCard newCard = connectedPlayers.AddPlayer("temp", clientId);
+
+            newCard.ShowKick(IsServer);
             if (IsServer)
             {
-                NetworkHandler.Singleton.allPlayers.OnListChanged += LogNetworkListEvent;
+                newCard.KickPlayer += ServerKickPlayer;
             }
 
-            btnStart.gameObject.SetActive(IsHost);
-            */
+            if (clientId == NetworkManager.LocalClientId)
+            {
+                you = "(you)";
+                newCard.ShowReady(true);
+                newCard.ReadyToggled += ClientReadyToggled;
+            }
+            else
+            {
+                you = "";
+                newCard.ShowReady(false);
+            }
+
+            if (clientId == NetworkManager.ServerClientId)
+            {
+                who = "(Host)";
+                newCard.ShowKick(false);
+                newCard.ShowReady(false);
+            }
+            else
+            {
+                who = "(Player)";
+            }
+
+            newCard.SetPlayerName($"{who} {clientId}{you}");
+            return newCard;
         }
 
-        /*private PlayerCard AddPlayerCard(ulong clientId)
+        private void ConnectedPlayersDataList(NetworkList<It4080.PlayerData> playersData)
         {
-            //It4080.PlayerCard newCard = ConnectedPlayers.AddPlayer();
+            connectedPlayers.Clear();
+
+            foreach (It4080.PlayerData players in playersData)
+            {
+                var card = AddPlayerCard(players.clientId);
+                card.SetReady(players.isReady);
+                if (players.isReady)
+                {
+                    readyStatus = "Ready";
+                }
+                card.SetStatus(readyStatus);
+            }
+
         }
-        */
+
         private void LogNetworkListEvent(NetworkListEvent<It4080.PlayerData> changeEvent)
         {
             Debug.Log($"Player data changed:");
@@ -82,6 +158,48 @@ namespace It4080
             Debug.Log($"    Prev Value:   {changeEvent.PreviousValue}");
             Debug.Log($"        {changeEvent.PreviousValue.clientId}");
             Debug.Log($"        {changeEvent.PreviousValue.isReady}");
+        }
+
+
+        //------------------------------
+        //Events
+
+        private void ClientOnDisconnect(ulong clientId)
+        {
+            txtKicked.gameObject.SetActive(true);
+            connectedPlayers.gameObject.SetActive(false);
+        }
+
+        private void ClientOnAllPlayersChanged(NetworkListEvent<It4080.PlayerData> changeEvent)
+        {
+            ConnectedPlayersDataList(NetworkHandler.Singleton.allPlayers);
+
+            if (IsHost)
+            {
+                btnStart.gameObject.SetActive(false);
+            }
+        }
+
+        private void ClientReadyToggled(bool isReady)
+        {
+            RequestSetReadyServerRpc(isReady);
+        }
+
+        private void ServerKickPlayer(ulong clientId)
+        {
+            Debug.Log($"Kicked {clientId}");
+            NetworkManager.DisconnectClient(clientId);
+            NetworkHandler.Singleton.RemovePlayerFromList(clientId);
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        public void RequestSetReadyServerRpc(bool isReady, ServerRpcParams rpcParams = default)
+        {
+            ulong clientId = rpcParams.Receive.SenderClientId;
+            int playerIndex = NetworkHandler.Singleton.FindPlayerIndex(clientId);
+            It4080.PlayerData info = NetworkHandler.Singleton.allPlayers[playerIndex];
+            info.isReady = isReady;
+            NetworkHandler.Singleton.allPlayers[playerIndex] = info;
         }
     }
 }
