@@ -127,7 +127,7 @@ namespace It4080
                 who = "(Player)";
             }
 
-            newCard.SetPlayerName($"{who} {clientId} - {you}");
+            newCard.SetPlayerName($"{who} {clientId}: {you}");
             return newCard;
         }
 
@@ -141,8 +141,9 @@ namespace It4080
                 currentCard.SetReady(players.isReady);
                 if (players.isReady)
                 {
-                    readyStatus = "Ready";
+                    readyStatus = "Set Ready";
                 }
+
                 currentCard.SetStatus(readyStatus);
             }
 
@@ -166,7 +167,6 @@ namespace It4080
 
         private void ClientOnDisconnect(ulong clientId)
         {
-            //txtKicked.gameObject.SetActive(true);
             connectedPlayers.gameObject.SetActive(false);
         }
 
@@ -206,9 +206,9 @@ namespace It4080
 
         private void ServerKickPlayer(ulong clientId)
         {
-            Debug.Log($"Kicked {clientId}");
             NetworkManager.DisconnectClient(clientId);
             NetworkHandler.Singleton.RemovePlayerFromList(clientId);
+            Debug.Log($"Kicked {clientId}");
         }
 
         [ServerRpc(RequireOwnership = false)]
