@@ -20,7 +20,7 @@ namespace It4080
         public Button btnStart;
         private bool isCleared = false;
 
-        string you = "";
+        string me = "";
         string who = "";
         string readyStatus = "Not Ready";
         int playersReadyUp;
@@ -99,6 +99,7 @@ namespace It4080
             It4080.PlayerCard newCard = connectedPlayers.AddPlayer("temp", clientId);
 
             newCard.ShowKick(IsServer);
+
             if (IsServer)
             {
                 newCard.KickPlayer += ServerKickPlayer;
@@ -106,13 +107,13 @@ namespace It4080
 
             if (clientId == NetworkManager.LocalClientId)
             {
-                you = "(you)";
+                me = "(me)";
                 newCard.ShowReady(true);
                 newCard.ReadyToggled += ClientReadyToggled;
             }
             else
             {
-                you = "";
+                me = "";
                 newCard.ShowReady(false);
             }
 
@@ -127,7 +128,7 @@ namespace It4080
                 who = "(Player)";
             }
 
-            newCard.SetPlayerName($"{who} {clientId}: {you}");
+            newCard.SetPlayerName($"{who} {clientId}: {me}");
             return newCard;
         }
 
