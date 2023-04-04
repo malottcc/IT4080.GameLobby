@@ -8,7 +8,6 @@ using UnityEngine.UI;
 using Unity.Netcode.Transports.UTP;
 using TMPro;
 
-
 namespace It4080
 {
     public class Lobby : NetworkBehaviour
@@ -144,6 +143,10 @@ namespace It4080
                 {
                     readyStatus = "Set Ready";
                 }
+                else
+                {
+                    readyStatus = "Not Ready";
+                }
 
                 currentCard.SetStatus(readyStatus);
             }
@@ -171,7 +174,7 @@ namespace It4080
             connectedPlayers.gameObject.SetActive(false);
         }
 
-        private void AllPlayersChanged(NetworkListEvent<It4080.PlayerData> changeEvent)
+        private void AllPlayersChanged(NetworkListEvent<It4080.PlayerData> allPlayers)
         {
             ConnectedPlayersDataList(NetworkHandler.Singleton.allPlayers);
 
